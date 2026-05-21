@@ -1,0 +1,161 @@
+﻿using Helpdesk.Domain.Entities.Masters;
+using Helpdesk.Persistence.Contexts;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Helpdesk.Persistence.Seed
+{
+
+    public static class DbInitializer
+    {
+        public static async Task SeedAsync(HelpdeskDbContext context)
+        {
+            if (!context.Roles.Any())
+            {
+                context.Roles.AddRange(
+                    new Role
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Admin",
+                        Code = "ADMIN",
+                        IsActive = true,
+                        CreatedOn = DateTime.UtcNow
+                    },
+                    new Role
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Support Engineer",
+                        Code = "SUPPORT_ENGINEER",
+                        IsActive = true,
+                        CreatedOn = DateTime.UtcNow
+                    },
+                    new Role
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Employee",
+                        Code = "EMPLOYEE",
+                        IsActive = true,
+                        CreatedOn = DateTime.UtcNow
+                    }
+                );
+            }
+
+            if (!context.TicketStatuses.Any())
+            {
+                context.TicketStatuses.AddRange(
+                    new TicketStatus
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Open",
+                        Code = "OPEN",
+                        Color = "#ff9800",
+                        Sequence = 1,
+                        IsClosed = false,
+                        CreatedOn = DateTime.UtcNow
+                    },
+                    new TicketStatus
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "In Progress",
+                        Code = "IN_PROGRESS",
+                        Color = "#2196f3",
+                        Sequence = 2,
+                        IsClosed = false,
+                        CreatedOn = DateTime.UtcNow
+                    },
+                    new TicketStatus
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Resolved",
+                        Code = "RESOLVED",
+                        Color = "#4caf50",
+                        Sequence = 3,
+                        IsClosed = true,
+                        CreatedOn = DateTime.UtcNow
+                    }
+                );
+            }
+
+            if (!context.TicketPriorities.Any())
+            {
+                context.TicketPriorities.AddRange(
+                    new TicketPriority
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Low",
+                        Code = "LOW",
+                        SlaHours = 48,
+                        SortOrder = 1,
+                        CreatedOn = DateTime.UtcNow
+                    },
+                    new TicketPriority
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Medium",
+                        Code = "MEDIUM",
+                        SlaHours = 24,
+                        SortOrder = 2,
+                        CreatedOn = DateTime.UtcNow
+                    },
+                    new TicketPriority
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "High",
+                        Code = "HIGH",
+                        SlaHours = 8,
+                        SortOrder = 3,
+                        CreatedOn = DateTime.UtcNow
+                    },
+                    new TicketPriority
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Critical",
+                        Code = "CRITICAL",
+                        SlaHours = 4,
+                        SortOrder = 4,
+                        CreatedOn = DateTime.UtcNow
+                    }
+                );
+            }
+            #region Departments
+
+            if (!context.Departments.Any())
+            {
+                context.Departments.AddRange(
+                    new Department
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "IT Support",
+                        Description = "Handles technical issues",
+                        IsActive = true,
+                        CreatedOn = DateTime.UtcNow
+                    },
+
+                    new Department
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Human Resources",
+                        Description = "Handles HR operations",
+                        IsActive = true,
+                        CreatedOn = DateTime.UtcNow
+                    },
+
+                    new Department
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Finance",
+                        Description = "Handles finance operations",
+                        IsActive = true,
+                        CreatedOn = DateTime.UtcNow
+                    }
+                );
+            }
+
+            #endregion
+            await context.SaveChangesAsync();
+        }
+    }
+}
