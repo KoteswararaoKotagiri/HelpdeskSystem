@@ -1,19 +1,22 @@
-using Helpdesk.Persistence.Contexts;
-using Helpdesk.Persistence.Seed;
-using Microsoft.EntityFrameworkCore;
-using System.Text;
+using Helpdesk.Infrastructure.Hubs;
 using Helpdesk.Application.Interfaces;
 using Helpdesk.Infrastructure.Authentication;
+using Helpdesk.Infrastructure.Notifications;
+using Helpdesk.Infrastructure.Storage;
+using Helpdesk.Persistence.Contexts;
+using Helpdesk.Persistence.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 #region Services
 
 builder.Services.AddControllers();
-
+builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(options =>
@@ -52,7 +55,10 @@ builder.Services.AddSwaggerGen(options =>
             }
         });
 });
-
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<INotificationService,NotificationService>();
+builder.Services.AddScoped<IFileStorageService,LocalFileStorageService>();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddDbContext<HelpdeskDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -82,6 +88,24 @@ builder.Services
                     new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(jwtSettings.Key))
             };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken =
+                    context.Request.Query["access_token"];
+
+                var path = context.HttpContext.Request.Path;
+
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    path.StartsWithSegments("/hubs/notifications"))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            }
+        };
     });
 
 #endregion
@@ -111,6 +135,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseStaticFiles();
+
 app.UseAuthentication();
 
 app.UseAuthorization();
@@ -118,5 +144,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 #endregion
-
+app.MapHub<NotificationHub>("/hubs/notifications");
 app.Run();

@@ -155,6 +155,38 @@ namespace Helpdesk.Persistence.Seed
             }
 
             #endregion
+            #region Ticket Categories
+
+            if (!context.TicketCategories.Any())
+            {
+                context.TicketCategories.AddRange(
+                    new TicketCategory
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Software",
+                        Description = "Software related issues",
+                        CreatedOn = DateTime.UtcNow
+                    },
+
+                    new TicketCategory
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Hardware",
+                        Description = "Hardware related issues",
+                        CreatedOn = DateTime.UtcNow
+                    },
+
+                    new TicketCategory
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Network",
+                        Description = "Network related issues",
+                        CreatedOn = DateTime.UtcNow
+                    }
+                );
+            }
+
+            #endregion
             await context.SaveChangesAsync();
         }
     }

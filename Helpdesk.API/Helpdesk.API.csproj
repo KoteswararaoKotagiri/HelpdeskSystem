@@ -36,4 +36,8 @@
     <ProjectReference Include="..\Helpdesk.Persistence\Helpdesk.Persistence.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\uploads\tickets\" />
+  </ItemGroup>
+
 </Project>
