@@ -10,12 +10,16 @@ namespace Helpdesk.Application.Features.Tickets.DTOs
     {
         public Guid Id { get; set; }
 
-        public string UserName { get; set; }
+        public Guid TicketId { get; set; }
 
-        public string Comment { get; set; }
+        public string Body { get; set; }
+
+        public string AuthorName { get; set; }
+
+        public string AuthorRole { get; set; }
 
         public bool IsInternal { get; set; }
 
-        public DateTime CreatedOn { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }

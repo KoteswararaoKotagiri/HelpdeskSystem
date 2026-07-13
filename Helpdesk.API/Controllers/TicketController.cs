@@ -21,15 +21,18 @@ namespace Helpdesk.API.Controllers
         private readonly ICurrentUserService _currentUser;
         private readonly IFileStorageService _fileStorageService;
         private readonly INotificationService _notificationService;
+        private readonly IEmailNotificationService _emailNotificationService;
 
         public TicketController(
             HelpdeskDbContext context,
-            ICurrentUserService currentUser, IFileStorageService fileStorageService,INotificationService notificationService)
+            ICurrentUserService currentUser, IFileStorageService fileStorageService,INotificationService notificationService,
+            IEmailNotificationService emailNotificationService)
         {
             _context = context;
             _currentUser = currentUser;
             _fileStorageService = fileStorageService;
             _notificationService = notificationService;
+            _emailNotificationService = emailNotificationService;
         }
 
         [HttpPost]
@@ -69,6 +72,8 @@ namespace Helpdesk.API.Controllers
             _context.Tickets.Add(ticket);
 
             await _context.SaveChangesAsync();
+
+            await _emailNotificationService.NotifyTicketCreatedAsync(ticket.Id);
 
             return Ok(new
             {
@@ -143,21 +148,36 @@ namespace Helpdesk.API.Controllers
                     Id = x.Id,
                     TicketNumber = x.TicketNumber,
                     Title = x.Title,
-                    Status = x.Status.Name,
-                    Priority = x.Priority.Name,
-                    Category = x.Category.Name,
-                    CreatedOn = x.CreatedOn
+                    Description = x.Description,
+                    StatusName = x.Status.Name,
+                    PriorityName = x.Priority.Name,
+                    CategoryName = x.Category.Name,
+                    RequesterName = _context.Users
+                        .Where(u => u.Id == x.CreatedByUserId)
+                        .Select(u => u.FirstName + " " + u.LastName)
+                        .FirstOrDefault(),
+                    AssigneeName = _context.Users
+                        .Where(u => u.Id == x.AssignedToUserId)
+                        .Select(u => u.FirstName + " " + u.LastName)
+                        .FirstOrDefault(),
+                    CommentCount = _context.TicketComments
+                        .Count(c => c.TicketId == x.Id),
+                    AttachmentCount = _context.TicketAttachments
+                        .Count(a => a.TicketId == x.Id),
+                    CreatedAt = x.CreatedOn,
+                    UpdatedAt = x.ModifiedOn
                 })
                 .ToListAsync();
 
             return Ok(new
             {
+                Items = tickets,
                 TotalCount = totalCount,
                 PageNumber = request.PageNumber,
                 PageSize = request.PageSize,
-                Data = tickets
+                TotalPages = (int)Math.Ceiling(totalCount / (double)request.PageSize)
             });
-   
+
         }
         [HttpPut("{ticketId}/assign")]
         [Authorize(Roles = "Admin,Support Engineer")]
@@ -207,6 +227,8 @@ namespace Helpdesk.API.Controllers
             Message = "New ticket assigned"
         });
 
+            await _emailNotificationService.NotifyTicketAssignedAsync(ticket.Id);
+
             return Ok("Ticket assigned successfully.");
         }
         [HttpPut("{ticketId}/status")]
@@ -253,6 +275,8 @@ namespace Helpdesk.API.Controllers
 
             await _context.SaveChangesAsync();
 
+            await _emailNotificationService.NotifyStatusChangedAsync(ticket.Id);
+
             return Ok("Ticket status updated successfully.");
         }
 
@@ -286,7 +310,7 @@ namespace Helpdesk.API.Controllers
 
                 UserId = _currentUser.UserId,
 
-                Comment = request.Comment,
+                Comment = request.Body,
 
                 IsInternal = request.IsInternal,
 
@@ -307,7 +331,7 @@ namespace Helpdesk.API.Controllers
 
                 Action = "Comment Added",
 
-                Changes = request.Comment,
+                Changes = request.Body,
 
                 PerformedByUserId = _currentUser.UserId,
 
@@ -315,6 +339,8 @@ namespace Helpdesk.API.Controllers
             });
 
             await _context.SaveChangesAsync();
+
+            await _emailNotificationService.NotifyCommentAddedAsync(ticketId);
 
             return Ok("Comment added successfully.");
         }
@@ -339,14 +365,18 @@ namespace Helpdesk.API.Controllers
                 {
                     Id = x.Id,
 
-                    UserName =
+                    TicketId = x.TicketId,
+
+                    AuthorName =
                         x.User.FirstName + " " + x.User.LastName,
 
-                    Comment = x.Comment,
+                    AuthorRole = x.User.Role.Name,
+
+                    Body = x.Comment,
 
                     IsInternal = x.IsInternal,
 
-                    CreatedOn = x.CreatedOn
+                    CreatedAt = x.CreatedOn
                 })
                 .ToListAsync();
 
@@ -461,13 +491,20 @@ namespace Helpdesk.API.Controllers
                 {
                     Id = x.Id,
 
+                    TicketId = x.TicketId,
+
                     FileName = x.OriginalFileName,
 
                     ContentType = x.ContentType,
 
                     FileSize = x.FileSize,
 
-                    CreatedOn = x.CreatedOn
+                    UploadedByName = _context.Users
+                        .Where(u => u.Id == x.UploadedByUserId)
+                        .Select(u => u.FirstName + " " + u.LastName)
+                        .FirstOrDefault(),
+
+                    UploadedAt = x.CreatedOn
                 })
                 .ToListAsync();
 

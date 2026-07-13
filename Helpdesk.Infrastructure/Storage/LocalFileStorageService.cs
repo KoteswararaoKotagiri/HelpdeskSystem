@@ -22,8 +22,12 @@ namespace Helpdesk.Infrastructure.Storage
         public async Task<(string StoredFileName, string FilePath)>
             SaveFileAsync(IFormFile file)
         {
+            // WebRootPath is null when wwwroot doesn't exist yet; fall back to contentRoot/wwwroot.
+            var webRoot = _environment.WebRootPath
+                ?? Path.Combine(_environment.ContentRootPath, "wwwroot");
+
             var uploadsFolder = Path.Combine(
-                _environment.WebRootPath,
+                webRoot,
                 "uploads",
                 "tickets");
 

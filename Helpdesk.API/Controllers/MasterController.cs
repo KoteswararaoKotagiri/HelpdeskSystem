@@ -19,6 +19,7 @@ namespace Helpdesk.API.Controllers
         }
 
         [HttpGet("roles")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetRoles()
         {
             var roles = await _context.Roles
@@ -35,6 +36,7 @@ namespace Helpdesk.API.Controllers
         }
 
         [HttpGet("departments")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetDepartments()
         {
             var departments = await _context.Departments
@@ -81,6 +83,20 @@ namespace Helpdesk.API.Controllers
                 .ToListAsync();
 
             return Ok(priorities);
+        }
+
+        [HttpGet("ticket-categories")]
+        public async Task<IActionResult> GetTicketCategories()
+        {
+            var categories = await _context.TicketCategories
+                .Select(x => new
+                {
+                    x.Id,
+                    x.Name
+                })
+                .ToListAsync();
+
+            return Ok(categories);
         }
     }
 }

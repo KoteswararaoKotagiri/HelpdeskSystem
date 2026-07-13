@@ -10,12 +10,16 @@ namespace Helpdesk.Application.Features.Tickets.DTOs
     {
         public Guid Id { get; set; }
 
+        public Guid TicketId { get; set; }
+
         public string FileName { get; set; }
 
         public string ContentType { get; set; }
 
         public long FileSize { get; set; }
 
-        public DateTime CreatedOn { get; set; }
+        public string UploadedByName { get; set; }
+
+        public DateTime UploadedAt { get; set; }
     }
 }
