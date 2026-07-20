@@ -1,4 +1,5 @@
-﻿using Helpdesk.Domain.Entities.Identity;
+﻿using Helpdesk.Domain.Common;
+using Helpdesk.Domain.Entities.Identity;
 using Helpdesk.Domain.Entities.Masters;
 using Helpdesk.Domain.Entities.Tickets;
 using Microsoft.EntityFrameworkCore;
@@ -30,5 +31,11 @@ namespace Helpdesk.Persistence.Contexts
         public DbSet<TicketPriority> TicketPriorities => Set<TicketPriority>();
 
         public DbSet<TicketCategory> TicketCategories => Set<TicketCategory>();
+
+        public DbSet<TicketComment> TicketComments { get; set; }
+
+        public DbSet<AuditLog> AuditLogs { get; set; }
+
+        public DbSet<TicketAttachment> TicketAttachments { get; set; }
     }
 }

@@ -52,7 +52,7 @@ namespace Helpdesk.API.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok("User registered successfully.");
+            return Ok(new { message = "User registered successfully." });
         }
 
         [HttpPost("login")]
@@ -84,7 +84,9 @@ namespace Helpdesk.API.Controllers
             {
                 Token = token,
                 ExpiresAt = DateTime.UtcNow.AddMinutes(60),
-                UserName = $"{user.FirstName} {user.LastName}",
+                UserId = user.Id,
+                Email = user.Email,
+                FullName = $"{user.FirstName} {user.LastName}",
                 Role = user.Role.Name
             };
 

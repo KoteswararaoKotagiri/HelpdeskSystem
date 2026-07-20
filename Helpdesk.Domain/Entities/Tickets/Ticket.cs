@@ -33,5 +33,7 @@ namespace Helpdesk.Domain.Entities.Tickets
         public TicketPriority Priority { get; set; }
 
         public TicketCategory Category { get; set; }
+        public ICollection<TicketComment> Comments { get; set; }
+        public ICollection<TicketAttachment> Attachments { get; set; }
     }
 }

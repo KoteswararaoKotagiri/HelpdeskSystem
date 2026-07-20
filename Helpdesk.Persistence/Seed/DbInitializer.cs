@@ -1,5 +1,7 @@
-﻿using Helpdesk.Domain.Entities.Masters;
+﻿using Helpdesk.Domain.Entities.Identity;
+using Helpdesk.Domain.Entities.Masters;
 using Helpdesk.Persistence.Contexts;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,10 +61,20 @@ namespace Helpdesk.Persistence.Seed
                     new TicketStatus
                     {
                         Id = Guid.NewGuid(),
+                        Name = "Assigned",
+                        Code = "ASSIGNED",
+                        Color = "#9c27b0",
+                        Sequence = 2,
+                        IsClosed = false,
+                        CreatedOn = DateTime.UtcNow
+                    },
+                    new TicketStatus
+                    {
+                        Id = Guid.NewGuid(),
                         Name = "In Progress",
                         Code = "IN_PROGRESS",
                         Color = "#2196f3",
-                        Sequence = 2,
+                        Sequence = 3,
                         IsClosed = false,
                         CreatedOn = DateTime.UtcNow
                     },
@@ -72,7 +84,17 @@ namespace Helpdesk.Persistence.Seed
                         Name = "Resolved",
                         Code = "RESOLVED",
                         Color = "#4caf50",
-                        Sequence = 3,
+                        Sequence = 4,
+                        IsClosed = true,
+                        CreatedOn = DateTime.UtcNow
+                    },
+                    new TicketStatus
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Closed",
+                        Code = "CLOSED",
+                        Color = "#607d8b",
+                        Sequence = 5,
                         IsClosed = true,
                         CreatedOn = DateTime.UtcNow
                     }
@@ -155,7 +177,69 @@ namespace Helpdesk.Persistence.Seed
             }
 
             #endregion
+            #region Ticket Categories
+
+            if (!context.TicketCategories.Any())
+            {
+                context.TicketCategories.AddRange(
+                    new TicketCategory
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Software",
+                        Description = "Software related issues",
+                        CreatedOn = DateTime.UtcNow
+                    },
+
+                    new TicketCategory
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Hardware",
+                        Description = "Hardware related issues",
+                        CreatedOn = DateTime.UtcNow
+                    },
+
+                    new TicketCategory
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "Network",
+                        Description = "Network related issues",
+                        CreatedOn = DateTime.UtcNow
+                    }
+                );
+            }
+
+            #endregion
             await context.SaveChangesAsync();
+
+            #region Admin User
+
+            // Seed a default admin so the app is usable immediately after first run.
+            // Credentials: admin@helpdesk.com / password
+            if (!context.Users.Any())
+            {
+                var adminRole = await context.Roles
+                    .FirstAsync(r => r.Code == "ADMIN");
+
+                var department = await context.Departments
+                    .FirstAsync();
+
+                context.Users.Add(new User
+                {
+                    Id = Guid.NewGuid(),
+                    FirstName = "System",
+                    LastName = "Administrator",
+                    Email = "admin@helpdesk.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("password"),
+                    RoleId = adminRole.Id,
+                    DepartmentId = department.Id,
+                    IsActive = true,
+                    CreatedOn = DateTime.UtcNow
+                });
+
+                await context.SaveChangesAsync();
+            }
+
+            #endregion
         }
     }
 }
